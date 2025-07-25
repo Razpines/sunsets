@@ -33,6 +33,7 @@ def fetch_weather(lat: float, lon: float) -> dict:
         '&timezone=Asia%2FJerusalem'
     )
     resp = requests.get(url)
+
     resp.raise_for_status()
     return resp.json()
 
@@ -46,6 +47,7 @@ def fetch_air_quality(lat: float, lon: float) -> dict:
         '&timezone=Asia%2FJerusalem'
     )
     resp = requests.get(url)
+
     resp.raise_for_status()
     return resp.json()
 
@@ -72,6 +74,7 @@ def compute_score(row: pd.Series) -> float:
     pm25 = row['pm2_5']
 
     w1 = w2 = w3 = w4 = w5 = w6 = 1
+
     score = (
         w1 * high_cloud
         - w2 * low_cloud
@@ -79,6 +82,16 @@ def compute_score(row: pd.Series) -> float:
         - w4 * pm25
         + w5 * math.log(1 / abs(aod - 0.25))
         - w6 * dust
+    )
+
+    logging.debug(
+        'Variables -> high_cloud=%s low_cloud=%s rh700=%s pm25=%s aod=%s dust=%s',
+        high_cloud,
+        low_cloud,
+        rh700,
+        pm25,
+        aod,
+        dust,
     )
     return score
 
