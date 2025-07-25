@@ -24,13 +24,17 @@ def fetch_sunset_time(lat: float, lon: float) -> datetime.datetime:
     return sunset_dt.astimezone(local_tz)
 
 
-def fetch_weather(lat: float, lon: float) -> dict:
+def fetch_weather(lat: float, lon: float, date: datetime.date | None = None) -> dict:
+    """Fetch hourly weather data for a specific date."""
+    if date is None:
+        date = datetime.date.today()
     logging.info('Fetching weather data from Open-Meteo')
     url = (
         'https://api.open-meteo.com/v1/forecast'
         f'?latitude={lat}&longitude={lon}'
         '&hourly=cloud_cover_high,cloud_cover_low,relative_humidity_700hPa'
         '&timezone=Asia%2FJerusalem'
+        f'&start_date={date}&end_date={date}'
     )
     resp = requests.get(url)
 
@@ -38,13 +42,19 @@ def fetch_weather(lat: float, lon: float) -> dict:
     return resp.json()
 
 
-def fetch_air_quality(lat: float, lon: float) -> dict:
+def fetch_air_quality(
+    lat: float, lon: float, date: datetime.date | None = None
+) -> dict:
+    """Fetch hourly air-quality data for a specific date."""
+    if date is None:
+        date = datetime.date.today()
     logging.info('Fetching air quality data from Open-Meteo')
     url = (
         'https://air-quality-api.open-meteo.com/v1/air-quality'
         f'?latitude={lat}&longitude={lon}'
         '&hourly=aerosol_optical_depth,dust,pm2_5'
         '&timezone=Asia%2FJerusalem'
+        f'&start_date={date}&end_date={date}'
     )
     resp = requests.get(url)
 
@@ -98,13 +108,17 @@ def compute_score(row: pd.Series) -> float:
 
 def main():
     sunset_time = fetch_sunset_time(LAT, LON)
-    weather = fetch_weather(LAT, LON)
-    air_quality = fetch_air_quality(LAT, LON)
+    weather = fetch_weather(LAT, LON, date=sunset_time.date())
+    air_quality = fetch_air_quality(LAT, LON, date=sunset_time.date())
 
     df = build_dataframe(weather, air_quality)
 
     target_hour = sunset_time.replace(minute=0, second=0, microsecond=0)
-    row = df.loc[target_hour]
+    if target_hour in df.index:
+        row = df.loc[target_hour]
+    else:
+        nearest_idx = df.index.get_indexer([target_hour], method="nearest")[0]
+        row = df.iloc[nearest_idx]
     score = compute_score(row)
 
     print('Sunset time (local):', sunset_time)
