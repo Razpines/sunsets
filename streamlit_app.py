@@ -67,6 +67,7 @@ if st.button("Get Sunset Score"):
         else:
             nearest_idx = df.index.get_indexer([target_hour], method="nearest")[0]
             row = df.iloc[nearest_idx]
+
         score = compute_score(row)
     st.success(f"Sunset time (local): {sunset_time}")
     st.write("Variables at sunset:")

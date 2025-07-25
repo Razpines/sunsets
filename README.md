@@ -20,6 +20,7 @@ streamlit run streamlit_app.py
 On Windows you can also run `start_app.bat` to perform all of the
 above steps automatically.
 
+
 ### Free Hosting
 
 You can deploy the app for free on [Streamlit Community Cloud](https://streamlit.io/cloud).
