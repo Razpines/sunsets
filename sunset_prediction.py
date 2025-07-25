@@ -52,7 +52,7 @@ def fetch_air_quality(lat: float, lon: float) -> dict:
 
 
 
-def compute_score(weather: dict, aq: dict, target_hour: datetime.datetime) -> float:
+def compute_score(weather: dict, aq: dict, target_hour: datetime.datetime) -> tuple[float, dict]:
     logging.debug('Computing sunset score')
     hourly = weather['hourly']
     target_str = target_hour.strftime('%Y-%m-%dT%H:00')
@@ -86,7 +86,15 @@ def compute_score(weather: dict, aq: dict, target_hour: datetime.datetime) -> fl
         aod,
         dust,
     )
-    return score
+    variables = {
+        "high_cloud": high_cloud,
+        "low_cloud": low_cloud,
+        "rh700": rh700,
+        "pm25": pm25,
+        "aod": aod,
+        "dust": dust,
+    }
+    return score, variables
 
 
 def main():
@@ -96,7 +104,7 @@ def main():
 
     # choose hour nearest to sunset
     target_hour = sunset_time.replace(minute=0, second=0, microsecond=0)
-    score = compute_score(weather, air_quality, target_hour)
+    score, variables = compute_score(weather, air_quality, target_hour)
     aq_hourly = air_quality['hourly']
     target_str = target_hour.strftime('%Y-%m-%dT%H:00')
     aq_idx = aq_hourly['time'].index(target_str)
@@ -106,6 +114,7 @@ def main():
     print('Weather data sample:', weather['hourly']['time'][:3])
     print('Air quality sample:', air_quality['hourly']['time'][:3])
     print('PM2.5:', pm25)
+    print('Variables:', variables)
     print('Sunset score:', score)
 
 
