@@ -51,12 +51,23 @@ if map_data.get("last_clicked"):
 
 if st.button("Get Sunset Score"):
     with st.spinner("Fetching data..."):
-        sunset_time = fetch_sunset_time(st.session_state.lat, st.session_state.lon)
-        weather = fetch_weather(st.session_state.lat, st.session_state.lon)
-        air_quality = fetch_air_quality(st.session_state.lat, st.session_state.lon)
+        sunset_time = fetch_sunset_time(
+            st.session_state.lat, st.session_state.lon
+        )
+        weather = fetch_weather(
+            st.session_state.lat, st.session_state.lon, date=sunset_time.date()
+        )
+        air_quality = fetch_air_quality(
+            st.session_state.lat, st.session_state.lon, date=sunset_time.date()
+        )
         df = build_dataframe(weather, air_quality)
         target_hour = sunset_time.replace(minute=0, second=0, microsecond=0)
-        row = df.loc[target_hour]
+        if target_hour in df.index:
+            row = df.loc[target_hour]
+        else:
+            nearest_idx = df.index.get_indexer([target_hour], method="nearest")[0]
+            row = df.iloc[nearest_idx]
+
         score = compute_score(row)
     st.success(f"Sunset time (local): {sunset_time}")
     st.write("Variables at sunset:")

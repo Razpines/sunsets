@@ -13,8 +13,13 @@ Install the dependencies and run the app:
 
 ```bash
 pip install -r requirements.txt
+python -m py_compile sunset_prediction.py streamlit_app.py
 streamlit run streamlit_app.py
 ```
+
+On Windows you can also run `start_app.bat` to perform all of the
+above steps automatically.
+
 
 ### Free Hosting
 
